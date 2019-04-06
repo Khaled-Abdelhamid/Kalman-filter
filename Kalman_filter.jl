@@ -33,21 +33,6 @@ the system i want to model is car system in which i get its velocity and positio
 
 =#
 
-function kalman!(kal_struct::kal_Data)
-
-# This is the code which implements the discrete Kalman filter:
-   #Prediction for state vector and covariance:
-   kal_struct.x = kal_struct.A * kal_struct.x + kal_struct.B * kal_struct.u;
-   kal_struct.P = kal_struct.A * kal_struct.P * kal_struct.A' + kal_struct.Q;
-
-
-   K = kal_struct.P*kal_struct.C'*inv(kal_struct.C* kal_struct.P * kal_struct.C' + kal_struct.R); # calculation of the kalman gain factor
-
-   #Correction based on observation:
-   kal_struct.x = kal_struct.x + kal_struct.K * (kal_struct.z - kal_struct.C * kal_struct.x);
-   kal_struct.P = kal_struct.P - kal_struct.K * kal_struct.C * kal_struct.P;
-end
-
 
 mutable struct kal_Data
           A # the transition matrix
@@ -61,12 +46,28 @@ mutable struct kal_Data
           u # the input matrix
           z # the observation vector
           x # the state vector
-          p # state vector covariance
+          P # state vector covariance
 
              kal_Data() = new()
              end
 
 kal=kal_Data()
+
+function kalman!(kal_struct::kal_Data)
+
+# This is the code which implements the discrete Kalman filter:
+   #Prediction for state vector and covariance:
+   kal_struct.x = kal_struct.A * kal_struct.x + kal_struct.B * kal_struct.u;
+   kal_struct.P = kal_struct.A * kal_struct.P * kal_struct.A' + kal_struct.Q;
+
+
+   K = kal_struct.P*kal_struct.C'*inv(kal_struct.C* kal_struct.P * kal_struct.C' + kal_struct.R); # calculation of the kalman gain factor
+
+   #Correction based on observation:
+   kal_struct.x = kal_struct.x + K * (kal_struct.z - kal_struct.C * kal_struct.x);
+   kal_struct.P = kal_struct.P - K * kal_struct.C * kal_struct.P;
+end
+
 
 
 
@@ -77,7 +78,7 @@ kal.A= [1 dt ;   #intializing the system dynamics array
 kal.B= [0  0 ;   #intializing the the input array, here we don't have any forcing intervention over the states so it equals zero
         0  0 ]
 
-kal.p = [1  0 ;   #intializing the uncertitnty martix of the model
+kal.P = [1  0 ;   #intializing the uncertitnty martix of the model
          0  1 ]
 
 
