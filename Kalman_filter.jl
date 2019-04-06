@@ -61,7 +61,7 @@ function kalman!(kal_struct::kal_Data)
    kal_struct.P = kal_struct.A * kal_struct.P * kal_struct.A' + kal_struct.Q;
 
 
-   K = kal_struct.P*kal_struct.C'*inv(kal_struct.C* kal_struct.P * kal_struct.C' + kal_struct.R); # calculation of the kalman gain factor
+   K =(kal_struct.P * kal_struct.C') * inv( kal_struct.C * kal_struct.P * kal_struct.C' .+ kal_struct.R); # calculation of the kalman gain factor
 
    #Correction based on observation:
    kal_struct.x = kal_struct.x + K * (kal_struct.z - kal_struct.C * kal_struct.x);
@@ -71,6 +71,22 @@ end
 
 
 
+
+
+dt=0.01     #the sampling time
+duration=10 #simulation duration in seconds
+t=0:dt:duration #the time range of the simulation
+
+Vᵣ=5 # this is the velocity used in order to calculate the real position
+x₀=0 #the intitial position used
+
+Xᵣ=hcat(x₀.+ Vᵣ.*Array(t),Vᵣ.*ones(Float64,length(t)))# the real value that will be used to simulate the measurment
+size(Xᵣ)
+Xₖ=Array{Float64,2}(undef, length(t),2) #preallocation of the sdtate variables array
+Xₖ[1,:] =[0.01,0.01]
+kal.x=Xₖ[1,:];
+Zₖ=Array{Float64,1}(undef, length(t))   #preallocation of the observation array
+u=zeros(Float64, length(t),2)#preallocation of the input array,we are not giving any forcing input to the system so we make it qual to zero
 
 kal.A= [1 dt ;   #intializing the system dynamics array
         0  1 ]
@@ -90,22 +106,7 @@ kal.C=  [1 0]      # because we measure only the position we set the v aspect to
 kal.R=1            # the covariance of the measurment noise
 
 
-dt=0.01     #the sampling time
-duration=10 #simulation duration in seconds
-t=0:dt:duration #the time range of the simulation
 
-Vᵣ=5 # this is the velocity used in order to calculate the real position
-x₀=0 #the intitial position used
-
-Xᵣ=hcat(x₀.+ Vᵣ.*Array(t),Vᵣ.*ones(Float64,length(t)))# the real value that will be used to simulate the measurment
-size(Xᵣ)
-Xₖ=Array{Float64,2}(undef, length(t),2) #preallocation of the sdtate variables array
-Xₖ[1,:] =[0.01,0.01];
-kal.x=Xₖ[1,:];
-Zₖ=Array{Float64,1}(undef, length(t))   #preallocation of the observation array
-u=zeros(Float64, length(t),2)#preallocation of the input array,we are not giving any forcing input to the system so we make it qual to zero
-
-kal.
 for i in 1:length(t)
 
    kal.u=u[i,:]
@@ -115,3 +116,7 @@ for i in 1:length(t)
    Xₖ[i,:]=kal.x
 
 end
+
+scatter(Xₖ[:,1])
+#plot!(Zₖ[:,1])
+scatter!(Xᵣ[:,1])
