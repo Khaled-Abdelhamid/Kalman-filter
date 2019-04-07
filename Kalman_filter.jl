@@ -73,8 +73,8 @@ end
 
 
 
-dt=0.01     #the sampling time
-duration=10 #simulation duration in seconds
+dt=0.05     #the sampling time
+duration=15 #simulation duration in seconds
 t=0:dt:duration #the time range of the simulation
 
 Vᵣ=5 # this is the velocity used in order to calculate the real position
@@ -116,7 +116,15 @@ for i in 1:length(t)
    Xₖ[i,:]=kal.x
 
 end
+#=
+plot(Xₖ[:,1],title="Kalman filter",label=["pridection"],lw=.5)
+plot!(Zₖ[:,1],label=["measurment"],lw=.5)
+plot!(Xᵣ[:,1],label=["Real"],lw=.5)
+gui()
+=#
 
-scatter(Xₖ[:,1])
-#plot!(Zₖ[:,1])
-scatter!(Xᵣ[:,1])
+data = [Xₖ[:,1] Zₖ[:,1] Xᵣ[:,1]]
+# We put labels in a row vector: applies to each series
+labels = ["pridection" "measurment" "Real" ]
+
+plot(t, data, title="Kalman filter" ,label = labels,markersize = .5)
